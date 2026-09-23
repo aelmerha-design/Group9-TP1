@@ -66,6 +66,14 @@ public class ControllerUserLogin {
 		theStage = ts;
 		String username = ViewUserLogin.text_Username.getText();
 		String password = ViewUserLogin.text_Password.getText();
+		
+		if(username.length() >32) {
+			ViewUserLogin.alertUsernamePasswordError.setContentText(
+					"The username must have no more than 32 characters.");
+			ViewUserLogin.alertUsernamePasswordError.showAndWait();
+			return;
+			
+		}
     	boolean loginResult = false;
     	
 		// Fetch the user and verify the username

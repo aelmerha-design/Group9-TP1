@@ -37,6 +37,11 @@ public class ControllerUserUpdate {
 	 */
 	protected static void goToUserHomePage(Stage theStage, User theUser) {
 		
+		if (applicationMain.FoundationsMain.fUserSetup) {
+          applicationMain.FoundationsMain.fUserSetup = false;
+          guiUserLogin.ViewUserLogin.displayUserLogin(theStage);
+          return;
+		}
 		// Get the roles the user selected during login
 		int theRole = applicationMain.FoundationsMain.activeHomePage;
 

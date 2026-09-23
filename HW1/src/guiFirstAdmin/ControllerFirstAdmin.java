@@ -1,11 +1,10 @@
 package guiFirstAdmin;
-
+import passwordPopUpWindow.Model;
 import java.sql.SQLException;
 import database.Database;
 import entityClasses.User;
-import userNameRecognizerTestbed.UserNameRecognizer;
 import javafx.stage.Stage;
-
+import userNameRecognizerTestbed.UserNameRecognizer;
 /*******
  * <p> Title: ControllerFirstAdmin Class. </p>
  * 
@@ -104,11 +103,24 @@ public class ControllerFirstAdmin {
 	 * 
 	 */
 	protected static void doSetupAdmin(Stage ps, int r) {
+		
 		String usernameError = UserNameRecognizer.checkForValidUserName(adminUsername);
-		if (usernameError.length() > 0) {
+		
+		if(!usernameError.isEmpty()) {
 			ViewFirstAdmin.label_PasswordsDoNotMatch.setText(usernameError);
 			return;
+			
 		}
+		
+		String passwordError = Model.evaluatePassword(adminPassword1);
+		
+		if(!passwordError.isEmpty()) {
+			ViewFirstAdmin.label_PasswordsDoNotMatch.setText(
+			"Password must be 8-64 characters and include an uppercase letter, " + "lowercase letter, number, and special character.");
+			return;
+		}
+		
+		
 		// Make sure the two passwords are the same
 		if (adminPassword1.compareTo(adminPassword2) == 0) {
         	// Create the passwords and proceed to the user home page
@@ -126,6 +138,8 @@ public class ControllerFirstAdmin {
             }
             
             // User was established in the database, so navigate to the User Update Page
+            applicationMain.FoundationsMain.fUserSetup = true;
+            
         	guiUserUpdate.ViewUserUpdate.displayUserUpdate(ViewFirstAdmin.theStage, user);
 		}
 		else {
@@ -135,7 +149,10 @@ public class ControllerFirstAdmin {
 			ViewFirstAdmin.text_AdminPassword2.setText("");
 			ViewFirstAdmin.label_PasswordsDoNotMatch.setText(
 					"The two passwords must match. Please try again!");
+		
 		}
+		
+	
 	}
 	
 	

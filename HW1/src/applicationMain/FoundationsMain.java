@@ -77,8 +77,10 @@ public class FoundationsMain extends Application {
 	public static Database database = new Database();
     private Alert databaseInUse = new Alert(AlertType.INFORMATION);
 
-	public static int activeHomePage = 0;		// Which role's home page is currently active?
-												// Role 0 is the admin role number
+	public static int activeHomePage = 0;// Which role's home page is currently active?
+	public static boolean fUserSetup = false;								
+	
+	// Role 0 is the admin role number
 	@Override
 	public void start(Stage theStage) {
 		

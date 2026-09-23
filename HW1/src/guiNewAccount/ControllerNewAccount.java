@@ -1,6 +1,7 @@
 package guiNewAccount;
 
 import java.sql.SQLException;
+
 import database.Database;
 import entityClasses.User;
 import userNameRecognizerTestbed.UserNameRecognizer;
@@ -66,13 +67,14 @@ public class ControllerNewAccount {
 		// that the two password fields are the same before we do anything with it.)
 		String username = ViewNewAccount.text_Username.getText();
 		String password = ViewNewAccount.text_Password1.getText();
-		// make sure that the username is allowed before creating the account
+		
 		String usernameError = UserNameRecognizer.checkForValidUserName(username);
-		if (usernameError.length() > 0) {
-			ViewNewAccount.alertUsernamePasswordError.setTitle("Invalid");
-			ViewNewAccount.alertUsernamePasswordError.setHeaderText("This username you put is not valid.");
+		
+		if(!usernameError.isEmpty()) {
 			ViewNewAccount.alertUsernamePasswordError.setContentText(usernameError);
 			ViewNewAccount.alertUsernamePasswordError.showAndWait();
+			return;
+
 		}
 		
 		// Display key information to the log

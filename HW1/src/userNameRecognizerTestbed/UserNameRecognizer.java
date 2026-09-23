@@ -112,7 +112,8 @@ public class UserNameRecognizer {
 				
 				// A-Z, a-z, 0-9 -> State 1
 				if ((currentChar >= 'A' && currentChar <= 'Z' ) ||		// Check for A-Z
-						(currentChar >= 'a' && currentChar <= 'z' )) {	// Check for 0-9
+						(currentChar >= 'a' && currentChar <= 'z' ))	// Check for a-z
+						 {	// Check for 0-9
 					nextState = 1;
 					
 					// Count the character 
@@ -144,10 +145,7 @@ public class UserNameRecognizer {
 					userNameSize++;
 				}
 				// . -> State 2
-				else if (currentChar == '.' ||
-						 currentChar == '-' || 
-						 currentChar == '_' ||
-						 currentChar == '&') {							// Check for /
+				else if (currentChar == '.'|| currentChar == '-' || currentChar == '_' ||currentChar == '&') {							// Check for /
 					nextState = 2;
 					
 					// Count the .
@@ -159,12 +157,12 @@ public class UserNameRecognizer {
 				
 				// The execution of this state is finished
 				// If the size is larger than 16, the loop must stop
-				if (userNameSize > 16)
+				if (userNameSize > 32)
 					running = false;
 				break;			
 				
 			case 2: 
-				// State 2 deals with a character after a period in the name.
+				// State 2 deals with a character after a separator in the name.
 				
 				// A-Z, a-z, 0-9 -> State 1
 				if ((currentChar >= 'A' && currentChar <= 'Z' ) ||		// Check for A-Z
@@ -182,7 +180,7 @@ public class UserNameRecognizer {
 
 				// The execution of this state is finished
 				// If the size is larger than 16, the loop must stop
-				if (userNameSize > 16)
+				if (userNameSize > 32)
 					running = false;
 				break;			
 			}
@@ -223,7 +221,7 @@ public class UserNameRecognizer {
 		switch (state) {
 		case 0:
 			// State 0 is not a final state, so we can return a very specific error message
-			userNameRecognizerErrorMessage += "A UserName must start with A-Z, a-z.\n";
+			userNameRecognizerErrorMessage += "A UserName must start with A-Z or a-z.\n";
 			return userNameRecognizerErrorMessage;
 
 		case 1:
@@ -235,16 +233,16 @@ public class UserNameRecognizer {
 				userNameRecognizerErrorMessage += "A UserName must have at least 4 characters.\n";
 				return userNameRecognizerErrorMessage;
 			}
-			else if (userNameSize > 16) {
+			else if (userNameSize > 32) {
 				// UserName is too long
 				userNameRecognizerErrorMessage += 
-					"A UserName must have no more than 16 characters.\n";
+					"A UserName must have no more than 32 characters.\n";
 				return userNameRecognizerErrorMessage;
 			}
 			else if (currentCharNdx < input.length()) {
 				// There are characters remaining in the input, so the input is not valid
 				userNameRecognizerErrorMessage += 
-					"A UserName character may only contain the characters A-Z, a-z, 0-9, -, _, ., &.\n";
+					"A UserName character may only contain the characters A-Z, a-z, 0-9.\n";
 				return userNameRecognizerErrorMessage;
 			}
 			else {
@@ -257,7 +255,7 @@ public class UserNameRecognizer {
 		case 2:
 			// State 2 is not a final state, so we can return a very specific error message
 			userNameRecognizerErrorMessage +=
-				"A UserName character after a separator must be A-Z, a-z, 0-9.\n";
+				"A UserName character after a special character must be A-Z, a-z, or 0-9.\n";
 			return userNameRecognizerErrorMessage;
 			
 		default:
