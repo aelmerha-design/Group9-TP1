@@ -259,9 +259,15 @@ public class ViewUserUpdate {
         // First Name
         setupLabelUI(label_FirstName, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 200);
         setupLabelUI(label_CurrentFirstName, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 200);
+        
         setupButtonUI(button_UpdateFirstName, "Dialog", 18, 275, Pos.CENTER, 500, 193);
         button_UpdateFirstName.setOnAction((_) -> {result = dialogUpdateFirstName.showAndWait();
-        	result.ifPresent(_ -> theDatabase.updateFirstName(theUser.getUserName(), result.get()));
+        	result.ifPresent(_ -> {
+        		if(validName(result.get(), true))
+        			theDatabase.updateFirstName(theUser.getUserName(), result.get());
+        			else
+        				label_Purpose.setText("Enter a valid first name with a maximum of 64 characters");
+        	});
         	theDatabase.getUserAccountDetails(theUser.getUserName());
          	String newName = theDatabase.getCurrentFirstName();
            	theUser.setFirstName(newName);
@@ -273,8 +279,14 @@ public class ViewUserUpdate {
         setupLabelUI(label_MiddleName, "Arial", 18, 190, Pos.BASELINE_RIGHT, 5, 250);
         setupLabelUI(label_CurrentMiddleName, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 250);
         setupButtonUI(button_UpdateMiddleName, "Dialog", 18, 275, Pos.CENTER, 500, 243);
+        
         button_UpdateMiddleName.setOnAction((_) -> {result = dialogUpdateMiddleName.showAndWait();
-    		result.ifPresent(_ -> theDatabase.updateMiddleName(theUser.getUserName(), result.get()));
+    		result.ifPresent(_ -> {
+    		if(validName(result.get(), false))
+    			theDatabase.updateMiddleName(theUser.getUserName(), result.get());
+    		else
+    			label_Purpose.setText("Enter a valid middle name with a maximum of 64 characters or leave it blank");
+    		});
     		theDatabase.getUserAccountDetails(theUser.getUserName());
     		String newName = theDatabase.getCurrentMiddleName();
            	theUser.setMiddleName(newName);
@@ -287,7 +299,12 @@ public class ViewUserUpdate {
         setupLabelUI(label_CurrentLastName, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 300);
         setupButtonUI(button_UpdateLastName, "Dialog", 18, 275, Pos.CENTER, 500, 293);
         button_UpdateLastName.setOnAction((_) -> {result = dialogUpdateLastName.showAndWait();
-    		result.ifPresent(_ -> theDatabase.updateLastName(theUser.getUserName(), result.get()));
+    		result.ifPresent(_ -> {
+    		if(validName(result.get(), true))
+    			theDatabase.updateLastName(theUser.getUserName(), result.get());
+    		else
+    			label_Purpose.setText("Enter a valid last name with a maximum of 64 characters");
+             });
     		theDatabase.getUserAccountDetails(theUser.getUserName());
     		String newName = theDatabase.getCurrentLastName();
            	theUser.setLastName(newName);
@@ -303,8 +320,14 @@ public class ViewUserUpdate {
         setupButtonUI(button_UpdatePreferredFirstName, "Dialog", 18, 275, Pos.CENTER, 500, 343);
         button_UpdatePreferredFirstName.setOnAction((_) -> 
         	{result = dialogUpdatePreferredFirstName.showAndWait();
-    		result.ifPresent(_ -> 
-    		theDatabase.updatePreferredFirstName(theUser.getUserName(), result.get()));
+    		result.ifPresent(_ -> {
+    		if(validName(result.get(), false))
+    			theDatabase.updatePreferredFirstName(theUser.getUserName(), result.get());
+    		else
+    			label_Purpose.setText("Enter a valid preferred first name with a maximum of 64 characters");
+    		
+    		});
+ 
     		theDatabase.getUserAccountDetails(theUser.getUserName());
     		String newName = theDatabase.getCurrentPreferredFirstName();
            	theUser.setPreferredFirstName(newName);
@@ -317,7 +340,12 @@ public class ViewUserUpdate {
         setupLabelUI(label_CurrentEmailAddress, "Arial", 18, 260, Pos.BASELINE_LEFT, 200, 400);
         setupButtonUI(button_UpdateEmailAddress, "Dialog", 18, 275, Pos.CENTER, 500, 393);
         button_UpdateEmailAddress.setOnAction((_) -> {result = dialogUpdateEmailAddresss.showAndWait();
-    		result.ifPresent(_ -> theDatabase.updateEmailAddress(theUser.getUserName(), result.get()));
+    		result.ifPresent(_ -> {
+    		if(validEmail(result.get()))
+    			theDatabase.updateEmailAddress(theUser.getUserName(), result.get());
+    		else
+    			label_Purpose.setText("Enter a valid email address with a maximum of 64 characters");
+    		});
     		theDatabase.getUserAccountDetails(theUser.getUserName());
     		String newEmail = theDatabase.getCurrentEmailAddress();
            	theUser.setEmailAddress(newEmail);
@@ -328,8 +356,24 @@ public class ViewUserUpdate {
         // Set up the button to proceed to this user's home page
         setupButtonUI(button_ProceedToUserHomePage, "Dialog", 18, 300, 
         		Pos.CENTER, width/2-150, 450);
-        button_ProceedToUserHomePage.setOnAction((_) -> 
-        	{ControllerUserUpdate.goToUserHomePage(theStage, theUser);});
+        button_ProceedToUserHomePage.setOnAction((_) -> {
+        	if(!validName(theUser.getFirstName(), true)) {
+        		label_Purpose.setText("A valid first name is required");
+        		return;
+        	}
+        	
+        	if(!validName(theUser.getLastName(), true)) {
+        		label_Purpose.setText("A valid last name is required");
+        		return;
+        	}
+        	
+        	if(!validEmail(theUser.getEmailAddress())) {
+        		label_Purpose.setText("A valid email address is required");
+        		return;
+        	}
+        	
+            ControllerUserUpdate.goToUserHomePage(theStage, theUser);
+            });
     	
         // Populate the Pane's list of children widgets
         theRootPane.getChildren().addAll(
@@ -345,6 +389,37 @@ public class ViewUserUpdate {
         		label_EmailAddress, label_CurrentEmailAddress, 
         		button_ProceedToUserHomePage);
 	}
+	
+	private static boolean validName(String name, boolean nRequirement) {
+		if(name == null || name.isEmpty()) {
+			return !nRequirement;
+		}
+		
+		if(name.length() > 64) {
+			return false;
+		}
+		
+		return name.matches("[A-Za-z]+");
+	}
+	
+	private static boolean validEmail(String email) {
+	if(email == null || email.isEmpty() || email.length() > 64) {
+		return false;
+	}
+	
+	int firstAt = email.indexOf('@');
+	int lastAt = email.lastIndexOf('@');
+	
+	if(firstAt <=0 || firstAt != lastAt) {
+		return false;
+		
+	
+	}
+	
+	String afterAt = email.substring(firstAt + 1);
+	return !afterAt.isEmpty() && afterAt.contains(".");
+	}
+	
 	
 	
 	/*-********************************************************************************************

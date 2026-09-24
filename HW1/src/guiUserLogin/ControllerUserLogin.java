@@ -1,5 +1,7 @@
 package guiUserLogin;
-
+import java.util.Optional;
+import javafx.scene.control.TextInputDialog;
+import passwordPopUpWindow.Model;
 import database.Database;
 import entityClasses.User;
 import javafx.stage.Stage;
@@ -67,9 +69,9 @@ public class ControllerUserLogin {
 		String username = ViewUserLogin.text_Username.getText();
 		String password = ViewUserLogin.text_Password.getText();
 		
-		if(username.length() >32) {
+		if(username.length() >16) {
 			ViewUserLogin.alertUsernamePasswordError.setContentText(
-					"The username must have no more than 32 characters.");
+					"The username must have no more than 16 characters.");
 			ViewUserLogin.alertUsernamePasswordError.showAndWait();
 			return;
 			
@@ -89,13 +91,83 @@ public class ControllerUserLogin {
 		
 		// Check to see that the login password matches the account password
     	String actualPassword = theDatabase.getCurrentPassword();
+    	String oneTimePassword = theDatabase.getOneTimePasscode(username);
     	
     	if (password.compareTo(actualPassword) != 0) {
-    		ViewUserLogin.alertUsernamePasswordError.setContentText(
-    				"Incorrect username/password. Try again!");
-    		ViewUserLogin.alertUsernamePasswordError.showAndWait();
-    		return;
-    	}
+    		
+    		if (oneTimePassword == null || oneTimePassword.isEmpty() || password.compareTo(oneTimePassword) !=0) {
+    			ViewUserLogin.alertUsernamePasswordError.setContentText(
+    			"Incorrect username/password. Try Again");
+    			ViewUserLogin.alertUsernamePasswordError.showAndWait();
+    			return;
+    		}
+    		theDatabase.delOneTimePasscode(username);
+    		
+    		TextInputDialog newPasswordDialog = new TextInputDialog();
+    		newPasswordDialog.setTitle("New Password");
+    		newPasswordDialog.setHeaderText("Enter your new password");
+    		
+    		Optional<String> newPassword = newPasswordDialog.showAndWait();
+    		
+    		if (newPassword.isEmpty()) {
+    			return;
+    		}
+    		
+    		String errorMessage = Model.evaluatePassword(newPassword.get());
+    		
+    		if(!errorMessage.equals("")) {
+    			ViewUserLogin.alertUsernamePasswordError.setContentText(errorMessage);
+    			ViewUserLogin.alertUsernamePasswordError.showAndWait();
+    			return;
+    		}
+    		
+    		
+	
+	TextInputDialog confirmPasswordDialog = new TextInputDialog();
+	confirmPasswordDialog.setTitle("Confirm Password");
+	confirmPasswordDialog.setHeaderText("Enter the password again");
+	
+	Optional<String> confirmPassword = confirmPasswordDialog.showAndWait();
+	
+	if(confirmPassword.isEmpty()) {
+		return;
+	}
+	
+	if(!newPassword.get().equals(confirmPassword.get())) 
+	{
+		ViewUserLogin.alertUsernamePasswordError.setContentText(
+        "The passwords do not match.");
+				ViewUserLogin.alertUsernamePasswordError.showAndWait();
+		return;
+		
+	}
+	   theDatabase.updatePassword(username, newPassword.get());
+	   
+	   ViewUserLogin.alertUsernamePasswordError.setTitle("Password Updated");
+	   ViewUserLogin.alertUsernamePasswordError.setHeaderText("Your password has been updated");
+	   ViewUserLogin.alertUsernamePasswordError.setContentText("Please log in again using your new password.");
+	   ViewUserLogin.alertUsernamePasswordError.showAndWait();
+	   ViewUserLogin.displayUserLogin(theStage);
+	   return;
+}
+	
+    	
+    	
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+    		
+  
 		// System.out.println("*** Password is valid for this user");
 		
 		// Establish this user's details

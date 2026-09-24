@@ -1,5 +1,10 @@
 package guiAdminHome;
 
+
+import java.util.Optional;
+import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.TextInputDialog;
+import passwordPopUpWindow.Model;
 import database.Database;
 
 /*******
@@ -111,12 +116,69 @@ public class ControllerAdminHome {
 	 * this function has not yet been implemented. </p>
 	 */
 	protected static void setOnetimePassword () {
-		System.out.println("\n*** WARNING ***: One-Time Password Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.setTitle("*** WARNING ***");
-		ViewAdminHome.alertNotImplemented.setHeaderText("One-Time Password Issue");
-		ViewAdminHome.alertNotImplemented.setContentText("One-Time Password Not Yet Implemented");
-		ViewAdminHome.alertNotImplemented.showAndWait();
+		
+		ChoiceDialog<String> userDialog = new ChoiceDialog<>(
+				"<Select a User>", theDatabase.getUserList());
+		userDialog.setHeaderText("Select a user");
+		Optional<String> selectedUser = userDialog.showAndWait();
+		
+		if(selectedUser.isEmpty() || selectedUser.get().equals("<Select a User>")) {
+			return;
+		}
+		
+		TextInputDialog passwordDialog = new TextInputDialog();
+		passwordDialog.setTitle("Set One Time Password");
+		passwordDialog.setHeaderText("Enter a One Time Password for " + selectedUser.get());
+		
+		Optional<String> password = passwordDialog.showAndWait();
+		
+		if(password.isEmpty()) {
+			return;
+		}
+		
+		String errorMessage = Model.evaluatePassword(password.get());
+		
+		if(!errorMessage.equals("")) {
+			ViewAdminHome.alertNotImplemented.setTitle("Invalid Password");
+			ViewAdminHome.alertNotImplemented.setHeaderText(
+			"The password does not meet the requirements.");
+			
+			ViewAdminHome.alertNotImplemented.setContentText(errorMessage);
+			ViewAdminHome.alertNotImplemented.showAndWait();
+			return;
+			
+			
+		}
+		
+		theDatabase.setOneTimePasscode(
+		   selectedUser.get(), password.get());
+		ViewAdminHome.alertNotImplemented.setTitle("One Time Password");
+		ViewAdminHome.alertNotImplemented.setHeaderText(
+				"The one time password has been set.");
+	    ViewAdminHome.alertNotImplemented.setContentText(
+	    		"The one time password for " + selectedUser.get() + " has been  set.");
+	    ViewAdminHome.alertNotImplemented.showAndWait();
+	    
+				
+				
 	}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+	
 	
 	/**********
 	 * <p> 

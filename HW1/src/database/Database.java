@@ -116,14 +116,17 @@ public class Database {
 				+ "emailAddress VARCHAR(255), "
 				+ "adminRole BOOL DEFAULT FALSE, "
 				+ "newRole1 BOOL DEFAULT FALSE, "
-				+ "newRole2 BOOL DEFAULT FALSE)";
+				+ "newRole2 BOOL DEFAULT FALSE, "
+		        + "oneTimePasscode VARCHAR(255))";
+
 		statement.execute(userTable);
 		
 		// Create the invitation codes table
 	    String invitationCodesTable = "CREATE TABLE IF NOT EXISTS InvitationCodes ("
 	            + "code VARCHAR(10) PRIMARY KEY, "
 	    		+ "emailAddress VARCHAR(255), "
-	            + "role VARCHAR(10))";
+	            + "role VARCHAR(10), "
+	    		+ "invTime BIGINT)";
 	    statement.execute(invitationCodesTable);
 	}
 
@@ -272,6 +275,64 @@ public class Database {
 	}
 	
 	
+	public void setOneTimePasscode(String username, String passcode) {
+		String query = "UPDATE userDB SET oneTimePasscode = ? WHERE userName = ?";
+		
+		try(PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, passcode);
+			pstmt.setString(2, username);
+			pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	
+	}
+	
+	public String getOneTimePasscode(String username) {
+		String query = "SELECT oneTimePasscode FROM userDB WHERE userName = ?";
+		
+		try(PreparedStatement pstmt = connection.prepareStatement(query)) {
+			pstmt.setString(1, username);
+			ResultSet rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				return rs.getString("oneTimePasscode");
+			}
+			}
+		 catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return "";
+	}
+		
+	
+	
+    public void delOneTimePasscode(String username) {
+    	setOneTimePasscode(username, "");
+}
+    
+    
+    
+    
+    public void updatePassword(String username, String password) {
+    	String query = "UPDATE userDB SET password = ? WHERE userName = ?";
+    	
+    	try(PreparedStatement pstmt = connection.prepareStatement(query)) {
+    		pstmt.setString(1, password);
+    		pstmt.setString(2, username);
+    		pstmt.executeUpdate();
+    		currentPassword = password;
+    		
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    		
+    	}
+    }
+    
+	
+	
 /*******
  * <p> Method: boolean loginRole1(User user) </p>
  * 
@@ -392,12 +453,13 @@ public class Database {
 	// Generates a new invitation code and inserts it into the database.
 	public String generateInvitationCode(String emailAddress, String role) {
 	    String code = UUID.randomUUID().toString().substring(0, 6); // Generate a random 6-character code
-	    String query = "INSERT INTO InvitationCodes (code, emailaddress, role) VALUES (?, ?, ?)";
+	    String query = "INSERT INTO InvitationCodes (code, emailaddress, role, invTime) VALUES (?, ?, ?, ?)";
 
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
 	        pstmt.setString(1, code);
 	        pstmt.setString(2, emailAddress);
 	        pstmt.setString(3, role);
+	        pstmt.setLong(4,  System.currentTimeMillis());
 	        pstmt.executeUpdate();
 	    } catch (SQLException e) {
 	        e.printStackTrace();
@@ -474,6 +536,12 @@ public class Database {
 	        pstmt.setString(1, code);
 	        ResultSet rs = pstmt.executeQuery();
 	        if (rs.next()) {
+	        	long invTime = rs.getLong("invTime");
+	        	
+	        	if(System.currentTimeMillis() - invTime > 300000) {
+	        		removeInvitationAfterUse(code);
+	        		return "";
+	        	}
 	            return rs.getString("role");
 	        }
 	    } catch (SQLException e) {
